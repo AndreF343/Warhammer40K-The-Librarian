@@ -27,7 +27,7 @@ Automation suite that scrapes Warhammer 40,000 wiki data, stores it in Postgres/
 | **Data Ingestion** | Converts MediaWiki pages into cleaned sections, infobox key/value maps, and vector embeddings. | Implemented in the `WH40K_Ingestion` workflow. |
 | **Knowledge Graph Scripts** | Python tooling for bulk scraping, cleaning, and LightRAG export. | Lives in `KnowledgeGraph/` and mirrors the n8n transforms. |
 | **LLM Evaluation** | Generates Airtable-managed synthetic test suites and runs DeepEval/LangChain-style checks. | Implemented in the `Synthetic Test Generation` workflow. |
-| **Retrieval & QA Agent** | GPT-5.1 agent that chains hybrid search, SQL, knowledge graph, and PG vector store. | Implemented in the `Multitool Agent` workflow. |
+| **Retrieval & QA Agent** | Multi-modal agent that chains hybrid search, SQL, knowledge graph, and PG vector store. | Implemented in the `Multitool Agent` workflow. |
 
 ---
 
@@ -103,7 +103,7 @@ Automation suite that scrapes Warhammer 40,000 wiki data, stores it in Postgres/
 - **Entry points:** Chat trigger or callable workflow input (for other flows).
 - **Tool stack:** Hybrid search (`hybrid_search` SQL), Warhammer SQL (read-only Postgres), Warhammer Expert Tool (knowledge graph), PG vector store + context expansion, Cohere rerank.
 - **System prompt:** Enforces tool usage order, grounding rules, and fallback (“Sorry I don't know” if nothing relevant is found).
-- **Outcome:** GPT-5.1 answers with citations based strictly on retrieved context.
+- **Outcome:** Model answers with citations based strictly on retrieved context.
 
 ---
 
