@@ -82,6 +82,8 @@ Automation suite that scrapes Warhammer 40,000 wiki data, stores it in Postgres/
 
 ## Key Workflows
 
+<img width="1582" height="670" alt="n8npic1" src="https://github.com/user-attachments/assets/1c865b6f-830c-4a0f-8a30-7a690870caf7" />
+
 ### WH40K_Ingestion
 
 - **Input:** `/workspace/data/wh40k_urls.csv`
@@ -93,6 +95,8 @@ Automation suite that scrapes Warhammer 40,000 wiki data, stores it in Postgres/
 - **Purpose:** Build Airtable-managed evaluation suites.
 - **Highlights:** Fetch metric catalog from Airtable → sample random documents from Postgres → chunk and summarize text → prompt OpenAI for structured JSON test cases → write test cases/run metadata back to Airtable and trigger executions.
 - **Config knobs:** `Set Vars` node controls chunk size and questions per chunk; prompts define evaluation schema.
+
+<img width="1850" height="627" alt="n8npic2" src="https://github.com/user-attachments/assets/f8a373c1-11c7-4be2-b5c2-6b5442008388" />
 
 ### Multitool Agent
 
