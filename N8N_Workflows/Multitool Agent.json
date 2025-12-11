@@ -1,0 +1,622 @@
+{
+  "name": "Multitool Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.1",
+          "mode": "list",
+          "cachedResultName": "gpt-5.1"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -480,
+        176
+      ],
+      "id": "c394c0c4-887a-404e-ad71-8d09b94de190",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "xgUI7Sf2qz1nGuDq",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "={{ $json.query }}"
+            },
+            {
+              "name": "model",
+              "value": "text-embedding-3-small"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        928,
+        0
+      ],
+      "id": "4dd9df4d-699c-4a5b-9cca-02a1cb7e5bc6",
+      "name": "Generate Query Embedding",
+      "credentials": {
+        "openAiApi": {
+          "id": "xgUI7Sf2qz1nGuDq",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "71326cd6-1316-4b5e-bf34-0d0b3c086005",
+              "leftValue": "={{ $('Trigger Hybrid Search').item.json.keys().length}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1376,
+        0
+      ],
+      "id": "0ba01698-adf8-41db-b23a-0233320c69f2",
+      "name": "If3",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  message: \"no documents found\" \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        176
+      ],
+      "id": "ec3201c0-611e-4afd-9df5-69f14affc62e",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM hybrid_search(\n    query_text := $1,\n    query_embedding := $2::vector(1536),\n    match_count := $3::int,\n    rrf_k := 60::int\n);",
+        "options": {
+          "queryReplacement": "={{ $('When Executed by Another Workflow').item.json.query }}, {{ $json.data[0].embedding }}, {{ $json.usage.total_tokens }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1136,
+        0
+      ],
+      "id": "f5d0aa5d-7d80-4e9e-99f2-0fdeabad3b95",
+      "name": "Trigger Hybrid Search",
+      "credentials": {
+        "postgres": {
+          "id": "BruP5oDsGu2TL8iJ",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- This Code Node extracts 'content' from multiple input items ---\n\n// Step 1: Use .map() to iterate over ALL incoming items ($input.all()).\n// For each item, access its 'json' property, and then the 'content' field within that.\nconst contentArray = $input.all().map(item => {\n  // Basic safety check: ensure item.json and item.json.content exist.\n  // Return null or an empty string if not found, otherwise return the content.\n  // Adjust the fallback value (null) if needed.\n  return item.json?.pagecontent ?? null;\n});\n\n// Step 2: Filter out any potential null values if an item was missing content (optional)\n// If you are certain all items will have content, you can skip this filter.\nconst validContentArray = contentArray.filter(pagecontent => pagecontent !== null);\n\n// Step 3: Return the result as a *single* new n8n item.\n// This item contains your final array of strings under the 'documents' key.\nreturn [{\n  json: {\n    // Use validContentArray if you filtered, otherwise use contentArray\n    documents: validContentArray\n    // documents: contentArray // <-- Use this if you didn't filter\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        -16
+      ],
+      "id": "3466853c-0f56-421f-89ab-3862945031eb",
+      "name": "Create Array"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cohere.com/v2/rerank",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "cohereApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"rerank-v3.5\",\n  \"query\": \"{{ $('When Executed by Another Workflow').first().json.query }}\",\n  \"top_n\": 5,\n  \"documents\": \n    {{ JSON.stringify($json.documents) }}\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1872,
+        -16
+      ],
+      "id": "3308f368-62a5-41d4-89f0-c479e5997590",
+      "name": "HTTP Request",
+      "credentials": {
+        "cohereApi": {
+          "id": "yzJZgQCGqYniDSbS",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -480,
+        0
+      ],
+      "id": "825db6f5-4267-40c1-9c99-9e8f05635b3c",
+      "name": "Chat",
+      "webhookId": "8e0a0104-a31b-4e50-81e8-fab48c901e4d"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- Code Node to Reorder Items Based on Rerank Results ---\n\n// --- Step 1: Get Data from Input Nodes ---\n// Using the input lines confirmed by the user as correct for their workflow.\n\n// Get the data array to be reordered from the 'Setup Array' node.\n// This could be an array of objects OR an array of strings.\nconst originalDataItems = $('Create Array').first().json.documents;\n\n// Get the rerank results array from the primary input node's first item.\n// (Assumed to be the Cohere Rerank node output).\nconst rerankOrderInfo = $input.first().json.results;\n\n// --- Step 2: Validate Inputs (Basic Checks) ---\n// Validate that we actually got arrays to work with.\nif (!Array.isArray(originalDataItems)) {\n  throw new Error(\"Data retrieved from $('Setup Array').first().json.documents is not an array. Check the 'Setup Array' node output.\");\n}\nif (!Array.isArray(rerankOrderInfo) || rerankOrderInfo.length === 0) {\n  // Allow rerankOrderInfo to be empty if originalDataItems is also empty\n  if (originalDataItems.length !== 0) {\n      throw new Error(\"Could not get valid rerank results from the input node ($input.first()), but original data exists. Check the node providing rerank data.\");\n  }\n  // If both are empty, allow it to proceed and return empty.\n}\n\n\n// --- Step 3: Create the New Array in the Reranked Order ---\n// Handle the case where inputs might be empty.\nlet sortedData = [];\nif (rerankOrderInfo && rerankOrderInfo.length > 0 && originalDataItems && originalDataItems.length > 0) {\n    // Iterate through the rerankOrderInfo array. Each element tells us\n    // the index of the item we want from the originalDataItems array.\n    sortedData = rerankOrderInfo.map(rankInfo => {\n      const originalIndex = rankInfo.index;\n\n      // Check if the index is valid for the originalDataItems array\n      if (originalIndex !== undefined && originalIndex !== null && originalIndex >= 0 && originalIndex < originalDataItems.length) {\n        // Retrieve the corresponding original data item (object or string)\n        return originalDataItems[originalIndex];\n      } else {\n        // Log error for invalid index found in rerank results\n        console.error(`Error: Rerank result index ${originalIndex} is invalid or out of bounds for original data (length ${originalDataItems.length}). Skipping this index.`);\n        return null; // Return null for invalid indices\n      }\n    }).filter(item => item !== null); // Remove any nulls caused by invalid indices\n} else {\n    // If inputs were empty or invalid, ensure sortedData is an empty array\n    sortedData = [];\n    console.log(\"Input data (original or rerank info) is empty or invalid, resulting in empty sorted output.\");\n}\n\n\n// --- Step 4: Return the Sorted Data as a Single Item Containing the Array ---\n// This format returns ONE n8n item. The item's json property contains\n// an object with a key 'sortedDocuments' which holds the array.\n// This structure works correctly whether sortedData contains objects or strings.\nreturn [{\n  json: {\n    sortedDocuments: sortedData\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        -16
+      ],
+      "id": "17d84189-4afe-4fc2-a5d3-285723fb0276",
+      "name": "Return Reordered Items1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=# Role\n\nYou are a Warhammer 40,000 librarian-assistant with access to multiple retrieval tools:\n\n- Hybrid Search over documents (includes vector + lexical signals)\n- A relational Postgres database (Warhammer SQL)\n- A Warhammer knowledge graph (Warhammer Expert Tool)\n- A Postgres Vector Store (PGVS) and a Context Expansion function\n\nYour job is to decide which tools to use, call them in a sensible order, and answer the user’s question {{ $json.chatInput }} based ONLY on the information they return.\n\nIf you cannot answer the question using the provided information or if no information is returned from the tools, say exactly:\n\"Sorry I don't know\"\n\n# Tools Overview\n\nYou may call and combine these tools in any order, and you may call multiple tools per answer.\n\n## 1. Hybrid Search (primary semantic retrieval)\n\n- Uses hybrid (lexical + vector) retrieval over Warhammer content.\n- Best for:\n  - General lore questions about a character, place, faction, event, etc.\n  - “Who is X?”, “What happened on Y?”, “Explain Z.”\n  - When you want a small set of the most relevant chunks and their metadata.\n\nTypical pattern:\n1. Call Hybrid Search with a focused query (often the user question itself).\n2. If the returned chunks are enough to answer, use them directly.\n3. If they are too narrow or appear truncated, you may use PGVS + Context Expansion for extra context around the best chunks.\n\n## 2. Warhammer SQL (Relational Postgres, read-only)\n\nUse this when the question is about **structured/tabular data**:\n\n- listing entities,\n- counts and aggregations,\n- filtering by categories or infobox fields,\n- comparing sets of entities,\n- producing sets of `page_id` / `title` to feed into other tools.\n\nYou must NEVER modify data: do not use INSERT, UPDATE, DELETE, DROP, or ALTER.\n\n### Core Tables and Views\n\n(You can rely on these structures when writing SQL.)\n\n-- Page-level metadata, one row per wiki page\nCREATE TABLE IF NOT EXISTS pages (\n    page_id     BIGINT PRIMARY KEY,\n    title       TEXT NOT NULL,\n    fullurl     TEXT NOT NULL,\n    categories  JSONB,   -- e.g. [\"Space Marine Chapters\",\"Imperium\"]\n    infobox_kv  JSONB    -- flattened key→value map, plain text only\n);\n\n-- Chunk-level vector store\nCREATE TABLE IF NOT EXISTS warhammer_vectors (\n    id          BIGSERIAL PRIMARY KEY,\n    pagecontent TEXT,\n    metadata    JSONB,         -- page_id, title, section_title, chunk_index, etc.\n    embedding   VECTOR(1536),  -- pgvector embedding\n    fts         TSVECTOR       -- full-text index over pagecontent\n);\n\n-- wh_entities view (entity-level abstraction)\nCREATE OR REPLACE VIEW wh_entities AS\nSELECT\n    p.page_id,\n    p.title,\n    p.fullurl,\n    p.categories,                        -- JSONB array of strings\n    CASE\n        WHEN p.categories @> '[\"Space Marine Chapters\"]'::jsonb THEN 'chapter'\n        WHEN p.categories @> '[\"Primarchs\"]'::jsonb             THEN 'primarch'\n        WHEN p.categories @> '[\"Inquisitors\"]'::jsonb           THEN 'inquisitor'\n        WHEN p.categories @> '[\"Xenos Races\"]'::jsonb           THEN 'xenos_race'\n        ELSE 'other'\n    END AS entity_type,\n    p.infobox_kv->>'faction'     AS faction,\n    p.infobox_kv->>'allegiance'  AS allegiance,\n    p.infobox_kv->>'founding'    AS founding,\n    p.infobox_kv->>'primarch'    AS primarch,\n    p.infobox_kv->>'homeworld'   AS homeworld\nFROM pages p;\n\n-- wh_chunks view (exposes page_id as a real column)\nCREATE OR REPLACE VIEW wh_chunks AS\nSELECT\n    v.id,\n    (v.metadata->>'page_id')::BIGINT AS page_id,\n    v.pagecontent,\n    v.metadata,\n    v.embedding,\n    v.fts\nFROM warhammer_vectors v;\n\n### SQL Usage Rules\n\n- “Use SQL when the user asks to list, count, filter by specific fields, or compare sets of entities.”\n- When applying WHERE clauses on **non-ID fields** (e.g. categories, faction, allegiance, founding, primarch, homeworld):\n  - First run a **discovery query** to inspect valid values:\n    - SELECT DISTINCT <field> FROM <table_or_view> [WHERE ...] LIMIT 100;\n  - Use these results to correct spelling, casing, or to choose a valid filter.\n- Do NOT run `SELECT DISTINCT` for `page_id`, `id`, or `title`.\n- For the main answer, try to construct a **single SELECT query** that joins all necessary tables/views.\n- Only use SELECT. Do not attempt DDL or DML.\n\n### Example SQL Queries\n\n**Example A — List/filter**\n\nUser: “List all loyalist Space Marine chapters whose primarch is Corvus Corax.”\n\nSELECT title, founding, homeworld\nFROM wh_entities\nWHERE categories @> '[\"Space Marine Chapters\"]'\n  AND lower(allegiance) = 'loyalist'\n  AND lower(primarch) = 'corvus corax';\n\n**Example B — Count / rank**\n\nUser: “How many Ordo Xenos vs Ordo Malleus inquisitors do we have?”\n\nSELECT\n  faction,              -- e.g. 'Ordo Xenos', 'Ordo Malleus'\n  COUNT(*) AS count\nFROM wh_entities\nWHERE categories @> '[\"Inquisitors\"]'\nGROUP BY faction\nORDER BY count DESC;\n\n**Example C — Hard-filtered retrieval support**\n\nUser: “Give me detailed lore on all loyalist 2nd Founding chapters.”\n\n-- Step 1: get entity list\nSELECT page_id, title\nFROM wh_entities\nWHERE categories @> '[\"Chapters\"]'\n  AND lower(allegiance) = 'loyalist'\n  AND founding = '2nd Founding';\n\n-- Step 2 (outside SQL): use these page_ids/titles to drive Hybrid Search or PGVS-based retrieval.\n\n## 3. Warhammer Expert Tool (Knowledge Graph)\n\n- A knowledge graph oriented tool over Warhammer entities and their relationships.\n- Best for:\n  - multi-hop relationship questions (A’s links to B, timelines, causal chains),\n  - “How are X and Y related?”,\n  - “Summarize the connections between these factions/characters/events.”\n\nUsage:\n\n- Prefer this tool when the question is inherently about **relationships**, **structures**, or **paths** (who serves whom, what belongs to what, which factions are aligned, etc.).\n- You may use SQL or Hybrid Search first to identify the relevant entities, then call the Warhammer Expert Tool to reason over their relationships.\n- If Hybrid Search and SQL fail to give good coverage for a relationship-heavy question, escalate to the Warhammer Expert Tool.\n\n## 4. PGVS Tool (Postgres Vector Store, support only)\n\n- Directly queries `warhammer_vectors` using embeddings.\n- Returns the most similar chunks and their metadata (`page_id`, `title`, `section_title`, `section_index`, `chunk_index`, etc.).\n\nUsage:\n\n- This is **not** the primary semantic search (Hybrid Search already incorporates vector search).\n- Use PGVS when:\n  - another tool asks you to provide specific chunk coordinates,\n  - you need precise `(pageid, section_index, chunk_index)` tuples for the **Content Expansion** tool,\n  - you are debugging or refining context around a particularly important chunk.\n\n## 5. Content Expansion Tool\n\n- Expands context around specific chunks using a server-side function:\n\nInput JSON per item:\n\n[\n  { \"pageid\": 20292, \"section_index\": 1, \"chunk_index\": 2 },\n  { \"pageid\": 20292, \"section_index\": 2, \"chunk_index\": 0 }\n]\n\nQuery internally called:\n\nSELECT *\nFROM get_warhammer_chunks_context_sc(\n  '<JSON_ARRAY>'::jsonb\n);\n\nUsage:\n\n- Always call **after** Hybrid Search or PGVS (or any other tool that gives you chunk metadata).\n- Use it when:\n  - the top chunks look truncated,\n  - you need neighboring sections to form a coherent answer,\n  - you want more paragraphs around a given chunk to avoid missing important details.\n- Only pass a **small set of the best candidate chunks** (not everything you retrieved).\n\n# Retrieval Strategy\n\n1. **Understand the query**\n\nClassify the question before choosing tools:\n\n- **Structured/tabular**  \n  - “List…”, “How many…”, “Count…”, “Top N…”, “Filter by faction/allegiance/founding/etc.”  \n  → Start with **Warhammer SQL**.\n\n- **General lore / semantic**  \n  - “Who is X?”, “What is Y?”, “Explain Z”, “What happened at…?”  \n  → Start with **Hybrid Search Tool**.\n\n- **Relationship / graph-style**  \n  - “How are X and Y related?”  \n  - “What role does A play in B’s organization?”  \n  - “Trace the connections between these entities.”  \n  → Prefer **Warhammer Expert Tool** (knowledge graph). Optionally combine with SQL/Hybrid Search to identify entities first.\n\n- **Mixed**  \n  - e.g. “List all chapters of type X and summarize each one.”  \n  → Use **Warhammer SQL** for the list, then **Hybrid Search** or **Content Expansion** to get summaries.\n\n2. **Tool selection & ordering**\n\n- For **structured/tabular questions**:\n  - Use **Warhammer SQL** first.\n  - If the user also wants narrative descriptions, use the SQL result (page_ids / titles) to focus Hybrid Search or PGVS+Content Expansion.\n\n- For **general lore questions**:\n  - Start with **Hybrid Search**.\n  - If that output is shallow or cut-off, use **PGVS + Content Expansion** on the best chunks.\n\n- For **relationship questions**:\n  - Prefer **Warhammer Expert Tool**.\n  - You may:\n    - Use SQL to verify entities or get their categories/factions.\n    - Use Hybrid Search or PGVS+Content Expansion to pull key passages.\n  - Then synthesize a coherent explanation using these sources.\n\n- When you are **uncertain which tool is best**:\n  - Start with **Hybrid Search** (most general),\n  - Then:\n    - Use **SQL** if you see the need for structured filtering/counting,\n    - Or use **Warhammer Expert Tool** if the question is clearly about relationships.\n\n3. **Combining tools**\n\nYou are encouraged to chain tools when helpful:\n\n- SQL → Hybrid Search → Content Expansion  \n  (Get entity list, retrieve detailed chunks, expand context.)\n\n- Hybrid Search → Content Expansion  \n  (Default for deeper lore reading.)\n\n- SQL → Warhammer Expert Tool  \n  (Identify relevant entities, then ask the graph about their relationships.)\n\n- Hybrid Search → Warhammer Expert Tool  \n  (Get entity names and context, then use the knowledge graph for relational reasoning.)\n\n# Answering Rules\n\n- Use ONLY tool outputs from this conversation. Do not invent facts.\n- When answering, you may mention your sources, e.g. “According to the page titled `<title>`…” or “Based on the `wh_entities` view…”.\n- For numerical or set-based questions, trust **SQL** results.\n- For narrative explanations, trust **Hybrid Search + Content Expansion** and/or **Warhammer Expert Tool**.\n- If tool outputs conflict, prefer:\n  - more specific/structured sources (SQL or clearly-scoped chunks),\n  - and explicitly note uncertainty rather than guessing.\n- If you cannot answer from the available tool outputs, respond exactly:\n  - \"Sorry I don't know\"\n- Keep answers as concise as possible while still fully addressing the question.\n- Maintain continuity with the conversation history; do not contradict earlier established facts unless new tool outputs clearly override them.\n",
+          "returnIntermediateSteps": true,
+          "enableStreaming": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "612416ec-7706-4e6b-987a-7d92e505ecb2",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            },
+            {
+              "name": "sessionId"
+            },
+            {
+              "name": "type"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        0
+      ],
+      "id": "03dc664c-9202-4d26-bb71-36cbe6ccd435",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:9621/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        -480,
+        416
+      ],
+      "id": "80c3c1fa-cf73-4238-be85-8aa0b185bb83",
+      "name": "Warhammer Expert Tool",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "TPbyv0G4XAPcOCFA",
+          "name": "Bearer Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "mHSCkZC7qgeuN7F4",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Run read-only SQL SELECT queries against the Warhammer knowledge database.\n\nMain objects:\n\nwh_entities(page_id, title, fullurl, categories, entity_type, faction, allegiance, founding, primarch, homeworld) – derived view over pages.\n\npages(page_id, title, fullurl, categories, infobox_kv) – raw page metadata.\n\nUse this tool when you need lists, filters, counts, or rankings of entities, for example:\n\nfind all chapters with a given primarch, founding, allegiance, or category;\n\ncount or group entities (e.g. number of Ordo Xenos vs Ordo Malleus inquisitors);",
+        "operation": "executeQuery",
+        "query": "{{ $fromAI('sql_query') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        -112,
+        416
+      ],
+      "id": "233c105c-13f5-43d3-b287-760a7c0c5f76",
+      "name": "Warhammer SQL",
+      "credentials": {
+        "postgres": {
+          "id": "BruP5oDsGu2TL8iJ",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        608
+      ],
+      "id": "3c6d3501-6cec-4358-9bbd-8ee0aceeedc5",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "xgUI7Sf2qz1nGuDq",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Execute a SQL query in Postgres",
+        "operation": "executeQuery",
+        "query": "{{ $fromAI('sql_query') }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        64,
+        416
+      ],
+      "id": "421a145e-43d3-4e56-bfc0-b78705c7a8ff",
+      "name": "Context Expansion",
+      "credentials": {
+        "postgres": {
+          "id": "BruP5oDsGu2TL8iJ",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Postgres vector store knowledge base",
+        "tableName": "warhammer_vectors",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        416
+      ],
+      "id": "aa80b5bb-f6ea-4aec-9491-e9f49b73d594",
+      "name": "PGVS Tool",
+      "credentials": {
+        "postgres": {
+          "id": "BruP5oDsGu2TL8iJ",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Call this to fetch data from our vector store knowledge base",
+        "workflowId": {
+          "__rl": true,
+          "value": "4C1sAhqWjVrVMwzn",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4C1sAhqWjVrVMwzn",
+          "cachedResultName": "Ultima"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}",
+            "sessionId": "{{ $json.sessionId }}",
+            "type": "={{ \"hybrid\" }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sessionId",
+              "displayName": "sessionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        416
+      ],
+      "id": "37810af7-7c86-4993-a738-bac8c9051ed1",
+      "name": "Hybrid Search"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Query Embedding": {
+      "main": [
+        [
+          {
+            "node": "Trigger Hybrid Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Create Array",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Hybrid Search": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Array": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Return Reordered Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Generate Query Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Warhammer Expert Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Warhammer SQL": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "PGVS Tool",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Context Expansion": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PGVS Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hybrid Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6f92065d-96c4-4797-aa41-109f6cac5128",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6d07bb17e05fc9e36e3fe68c2306c74c839f961d48dc3f3b65d5e325411651dd"
+  },
+  "id": "4C1sAhqWjVrVMwzn",
+  "tags": [
+    {
+      "updatedAt": "2025-11-17T12:22:25.746Z",
+      "createdAt": "2025-11-17T12:22:25.746Z",
+      "id": "We0d1N1qqF7gmySM",
+      "name": "complete"
+    }
+  ]
+}

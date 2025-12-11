@@ -1,0 +1,1157 @@
+{
+  "name": "WH40K_Ingestion",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1680,
+        224
+      ],
+      "id": "e1159649-a71c-4220-b43b-1f184893865b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/workspace/data/wh40k_urls.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -1456,
+        224
+      ],
+      "id": "2edcd8c5-f8b1-4f05-9980-3147fb7ae613",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1264,
+        224
+      ],
+      "id": "4688b9b4-126c-44b9-93a9-7a2f3d12bb41",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "options": {
+          "batchSize": 10
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3424,
+        768
+      ],
+      "id": "3d87bf6d-3d95-4675-9ced-8053a34932d8",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "xgUI7Sf2qz1nGuDq",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fe4088f0-bd2f-4c94-b3cc-02c40df8a461",
+              "name": "parse.title",
+              "value": "={{ $('Get Page').item.json.parse.title }}",
+              "type": "string"
+            },
+            {
+              "id": "3108ed12-fe1d-4020-a25d-b7ea29e8aed2",
+              "name": "parse.pageid",
+              "value": "={{ $('Get Page').item.json.parse.pageid }}",
+              "type": "number"
+            },
+            {
+              "id": "d6e60966-8624-4e24-b6f4-c98c7f06b736",
+              "name": "parse.text",
+              "value": "={{ $('Get Page').item.json.parse.text }}",
+              "type": "string"
+            },
+            {
+              "id": "68011db1-5b60-4aec-b6d8-2cbf91ded90d",
+              "name": "categories",
+              "value": "={{ $('Get Page').item.json.parse.categories }}",
+              "type": "array"
+            },
+            {
+              "id": "2fd6da2f-97f3-4c23-be8c-4cc7fa36376e",
+              "name": "fullurl",
+              "value": "={{$items(\"Edit Fields2\").first().json.fullurl}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        272,
+        240
+      ],
+      "id": "e4c44372-45cb-4b32-bd99-5552b0c5c581",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "sections",
+        "include": "selectedOtherFields",
+        "fieldsToInclude": "title, pageid, categories, infobox_kv, fullurl",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2128,
+        240
+      ],
+      "id": "1ffbfd93-d887-430c-bb32-1edb5b641583",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3bc051a-5aaa-4aa0-97ba-3cd3c8a678ac",
+              "name": "fullurl",
+              "value": "={{ $('Loop Over Items').item.json.fullurl }}",
+              "type": "string"
+            },
+            {
+              "id": "63ea7078-e27c-49e1-85d5-fc0e4b6f8666",
+              "name": "title",
+              "value": "={{ $('Loop Over Items').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "c28505f8-33b0-45a2-8321-b9a9f7b26921",
+              "name": "pageid",
+              "value": "={{ $('Loop Over Items').item.json.pageid }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -672,
+        240
+      ],
+      "id": "b9579fe1-bf61-4b1e-81a4-6d3d2a3c2436",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "353e8527-1cc1-4fb0-9c0c-9373b3c5c3de",
+              "name": "page_title",
+              "value": "={{ $json.page_title }}",
+              "type": "string"
+            },
+            {
+              "id": "d5b44e02-f29e-494e-b57a-baa708e54f43",
+              "name": "pageid",
+              "value": "={{ $json.pageid }}",
+              "type": "number"
+            },
+            {
+              "id": "85762d2b-47ba-4ce8-8f1a-019ebd76f613",
+              "name": "fullurl",
+              "value": "={{ $json.fullurl }}",
+              "type": "string"
+            },
+            {
+              "id": "92c2e428-4c25-44d8-9b0c-8652d1c58660",
+              "name": "sections.text",
+              "value": "={{ $json.sections.text }}",
+              "type": "string"
+            },
+            {
+              "id": "f96755cb-49bb-467e-a1f0-54fcf79420fd",
+              "name": "categories",
+              "value": "={{ $json.categories }}",
+              "type": "array"
+            },
+            {
+              "id": "1754c0d3-a4b0-481d-90b1-39476eedc951",
+              "name": "section_index",
+              "value": "={{ $json.section_index }}",
+              "type": "number"
+            },
+            {
+              "id": "5f381e95-6f12-4376-a0fc-a973eecf00cf",
+              "name": "chunk_index",
+              "value": "={{ $json.chunk_index }}",
+              "type": "number"
+            },
+            {
+              "id": "544d43ba-6a58-4857-a14d-4dc850b96887",
+              "name": "sections.section_title",
+              "value": "={{ $json.sections.section_title }}",
+              "type": "string"
+            },
+            {
+              "id": "3a1f5056-5c3f-4c6d-950e-5e12ecef55a5",
+              "name": "infobox_kv",
+              "value": "={{ $json.infobox_kv }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2528,
+        240
+      ],
+      "id": "6156c748-171d-4a03-8cd2-ebab1656367b",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.chunk_text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "page_title",
+                "value": "={{ $json.page_title }}"
+              },
+              {
+                "name": "section_title",
+                "value": "={{ $json.section_title }}"
+              },
+              {
+                "name": "section_index",
+                "value": "={{ $json.section_index }}"
+              },
+              {
+                "name": "=chunk_index",
+                "value": "={{ $json.chunk_index }}"
+              },
+              {
+                "name": "url",
+                "value": "={{ $json.fullurl }}"
+              },
+              {
+                "name": "categories",
+                "value": "={{ $json.categories }}"
+              },
+              {
+                "name": "infobox_kv",
+                "value": "={{ $json.infobox_kv }}"
+              },
+              {
+                "name": "pageid",
+                "value": "={{ $json.pageid }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        3536,
+        736
+      ],
+      "id": "e8ba7148-a7b1-4f55-99f5-63472ab9d22d",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 100000000000,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        3632,
+        944
+      ],
+      "id": "d06f54c0-9601-4e11-98b9-be1153a50fda",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "96bd3e54-53ae-4a64-a1e4-aac9e7d54a4e",
+              "name": "title",
+              "value": "={{ $json.parse.title }}",
+              "type": "string"
+            },
+            {
+              "id": "72d1631c-463a-4246-949a-41b7b3eb00a1",
+              "name": "pageid",
+              "value": "={{ $json.parse.pageid }}",
+              "type": "number"
+            },
+            {
+              "id": "8d1e405a-d702-44dd-85fc-f1f1cb47e319",
+              "name": "fullurl",
+              "value": "={{ $json.fullurl }}",
+              "type": "string"
+            },
+            {
+              "id": "a0455a7a-6c88-48ff-8108-1fa66b956bc5",
+              "name": "categories",
+              "value": "={{ $json.categories }}",
+              "type": "array"
+            },
+            {
+              "id": "e66d0e47-c940-4cf6-acab-bfad5d1f40d7",
+              "name": "infobox_kv",
+              "value": "={{ $json.infobox_kv }}",
+              "type": "object"
+            },
+            {
+              "id": "6a95511c-718f-4a70-b998-ef6be704c019",
+              "name": "sections",
+              "value": "={{ $json.sections }}",
+              "type": "array"
+            },
+            {
+              "id": "d2a5fda1-b93a-4a11-a090-0ea6c04b0da3",
+              "name": "section_count",
+              "value": "={{ $json.section_count }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1856,
+        240
+      ],
+      "id": "a75c3c71-b282-4009-a6a9-97eea185a68d",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "jsCode": "const MAX_CHARS = 1500;\nconst OVERLAP_CHARS = 150;\nconst OVERLAP_SENTENCES = 2;   // carry up to this many full sentences as overlap\nconst MIN_SPLIT = 200;         // hard-split guard for pathological long sentences\n\nfunction prefixFor(j) {\n  const title = j.page_title ?? j.title ?? (j.parse && j.parse.title) ?? \"Untitled\";\n  const section = j.sections.section_title;\n  return `${title} — ${section}\\n\\n`;\n}\n\nfunction splitByParagraphs(text) {\n  return String(text).split(/\\n{2,}/g).map(s => s.trim()).filter(Boolean);\n}\n\nfunction splitBySentences(text) {\n  // simple sentence splitter\n  return String(text).split(/(?<=[\\.!?])\\s+(?=[A-Z(])/g).map(s => s.trim()).filter(Boolean);\n}\n\nfunction hardWrap(text, limit) {\n  const chunks = [];\n  let i = 0, t = String(text);\n  while (i < t.length) {\n    const end = Math.min(i + limit, t.length);\n    chunks.push(t.slice(i, end));\n    i = end;\n  }\n  return chunks;\n}\n\n// take up to the last N sentences of `s`, capped by OVERLAP_CHARS\nfunction sentenceOverlapTail(s, n = OVERLAP_SENTENCES, cap = OVERLAP_CHARS) {\n  const sentences = splitBySentences(s);\n  if (!sentences.length) return \"\";\n  const tail = sentences.slice(-n).join(\" \");\n  if (tail.length <= cap) return tail;\n  // cap by characters but try to cut at whitespace\n  const start = Math.max(0, tail.length - cap);\n  const ws = tail.slice(start).match(/^\\S*\\s/); // avoid cutting mid-word if possible\n  return tail.slice(start + (ws ? ws[0].length : 0));\n}\n\nfunction chunkSection(j) {\n  const basePrefix = prefixFor(j);\n  const budget = Math.max(400, MAX_CHARS - basePrefix.length);\n  const body = String(j.sections.text ?? \"\");\n\n  if (body.length <= budget) {\n    return [{ ...j, chunk_index: 0, chunk_text: basePrefix + body }];\n  }\n\n  const paras = splitByParagraphs(body);\n  const pieces = [];\n  let buf = \"\";\n\n  function pushBuf() {\n    const trimmed = buf.trim();\n    if (!trimmed) return;\n    pieces.push(trimmed);\n    // sentence-aware overlap (avoid mid-sentence/word starts)\n    buf = sentenceOverlapTail(trimmed);\n  }\n\n  for (const p of paras) {\n    if ((basePrefix + p).length > budget) {\n      const sents = splitBySentences(p);\n      for (const s0 of sents) {\n        const long = s0.length > budget; // pathological sentence\n        if (!long) {\n          if ((basePrefix + (buf ? buf + \" \" : \"\") + s0).length > budget) pushBuf();\n          buf = buf ? (buf + \" \" + s0) : s0;\n        } else {\n          // hard-wrap long sentence into smaller parts\n          const parts = hardWrap(s0, Math.max(MIN_SPLIT, budget));\n          for (const part of parts) {\n            if ((basePrefix + (buf ? buf + \" \" : \"\") + part).length > budget) pushBuf();\n            buf = buf ? (buf + \" \" + part) : part;\n          }\n        }\n      }\n      // paragraph boundary as blank line if it fits\n      if ((basePrefix + buf + \"\\n\\n\").length <= budget) buf += \"\\n\\n\";\n    } else {\n      const add = buf ? (buf + \"\\n\\n\" + p) : p;\n      if ((basePrefix + add).length > budget) {\n        pushBuf();\n        buf = p;\n      } else {\n        buf = add;\n      }\n    }\n  }\n  if (buf.trim()) pieces.push(buf.trim());\n\n  return pieces.map((piece, idx) => ({\n    page_title: j.page_title,\n    pageid: j.pageid,\n    fullurl: j.fullurl,\n    categories: j.categories,\n    infobox: j.infobox_kv ?? null,\n    section_title: j.sections.section_title,\n    section_index: j.section_index, // ensure this is set upstream; otherwise j.sections.section_index\n    chunk_index: idx,\n    chunk_text: basePrefix + piece,\n  }));\n}\n\nconst out = [];\nfor (const item of $input.all()) {\n  const j = item.json || {};\n  const chunks = chunkSection(j);\n  for (const c of chunks) out.push({ json: c });\n}\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2736,
+        240
+      ],
+      "id": "308491df-fd2a-4fdc-a66f-590fbe8f19db",
+      "name": "Chunk Text"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nreturn items.map((item, i) => ({\n  json: {\n    // keep only what downstream needs\n    page_title: item.json.title,\n    pageid: item.json.pageid,\n    fullurl: item.json.fullurl,\n    categories: item.json.categories,\n    infobox_kv: item.json.infobox_kv ?? null,\n    sections: item.json.sections, // title+text only\n    section_index: i,\n    chunk_index: 0,\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2336,
+        240
+      ],
+      "id": "954319c7-07cc-4294-b5d4-854d2e0119bf",
+      "name": "Format Document"
+    },
+    {
+      "parameters": {
+        "jsCode": "// One item per page: build sections from <h2> blocks, drop noisy sections.\n// Input: item.json.parse.text (HTML)\n// Output: { ...original, sections: [{section_title, text}], section_count }\n\nconst banned = new Set(['contents', 'videos', 'sources', 'gallery']);\n\nfunction pageToSections(j) {\n  let html = String(j.parse?.text ?? j.text ?? \"\");\n\n  // Unescape JSON-like escapes (order matters)\n  html = html\n    .replace(/\\\\\\\\/g, \"\\\\\")  // \\\\ -> \\\n    .replace(/\\\\\"/g, '\"')    // \\\" -> \"\n    .replace(/\\\\n/g, \"\\n\");  // \\n -> newline\n\n  // Remove heavy blocks; keep only <h2> as markers\n  html = html\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, \"\")\n    .replace(/<noscript[\\s\\S]*?<\\/noscript>/gi, \"\")\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, \"\")\n    .replace(/<figure[\\s\\S]*?<\\/figure>/gi, \"\")\n    .replace(/<(?!\\/?h2\\b)[^>]*>/gi, \"\"); // drop all tags except <h2>\n\n  // If there is intro content before first <h2>, wrap it as an \"Intro\" section\n  if (!/^<h2\\b/i.test(html) && html.trim()) {\n    html = \"<h2>Intro</h2>\" + html;\n  }\n\n  // Find all <h2> headers with positions\n  const headerRe = /<h2[^>]*>(.*?)<\\/h2>/gi;\n  const headers = [];\n  let m;\n  while ((m = headerRe.exec(html)) !== null) {\n    headers.push({ titleHtml: m[1], start: m.index, end: headerRe.lastIndex });\n  }\n\n  const sections = [];\n  for (let i = 0; i < headers.length; i++) {\n    const h = headers[i];\n    const nextStart = i + 1 < headers.length ? headers[i + 1].start : html.length;\n\n    // Clean header text (strip tags; remove trailing [] e.g., \"Abilities[]\")\n    let title = String(h.titleHtml).replace(/<[^>]+>/g, \"\").replace(/\\[\\]$/, \"\").trim();\n    const key = title.toLowerCase();\n\n    // Skip banned sections\n    if (banned.has(key)) continue;\n\n    // Extract body between this </h2> and the next <h2>\n    const bodyHtml = html.slice(h.end, nextStart);\n\n    // Strip any stray tags (should be minimal now) and normalize whitespace\n    const text = bodyHtml\n      .replace(/<[^>]+>/g, \"\")\n      .replace(/&nbsp;/gi, \" \")\n      .replace(/[ \\t]+/g, \" \")\n      .replace(/\\n\\s*\\n\\s*\\n+/g, \"\\n\\n\")\n      .trim();\n\n    if (text) sections.push({ section_title: title, text });\n  }\n\n  // replace the current return in pageToSections()\n  return {\n    parse: {\n      title: j.parse?.title,\n      pageid: j.parse?.pageid,\n    },\n    fullurl: j.fullurl,\n    categories: j.categories,\n    infobox: j.infobox ?? null,\n    sections,\n    section_count: sections.length,\n    infobox_kv: j.infobox_kv,\n  };\n\n}\n\nconst out = $input.all().map(item => ({ json: pageToSections(item.json || {}) }));\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1648,
+        240
+      ],
+      "id": "0fa7542e-996d-4f94-95e9-864961237b54",
+      "name": "Extract Data"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -912,
+        224
+      ],
+      "id": "95439002-1871-4488-88e1-d2c53e086910",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "91e38071-e4cb-45d2-8b82-8bd5aa2831f9",
+              "name": "parse.title",
+              "value": "={{ $('Edit Fields').item.json.parse.title }}",
+              "type": "string"
+            },
+            {
+              "id": "2fe75890-f0d6-4d79-87ee-b37392986306",
+              "name": "parse.pageid",
+              "value": "={{ $('Edit Fields').item.json.parse.pageid }}",
+              "type": "number"
+            },
+            {
+              "id": "674e22c9-76f0-49af-a1bc-e0487ea4bd0b",
+              "name": "fullurl",
+              "value": "={{$items(\"Edit Fields2\").first().json.fullurl}}",
+              "type": "string"
+            },
+            {
+              "id": "a2c5926a-1683-4f8e-b4d7-dfe163402407",
+              "name": "parse.text",
+              "value": "={{ $('Edit Fields').item.json.parse.text }}",
+              "type": "string"
+            },
+            {
+              "id": "1bf2a18e-28e9-4fe3-8434-34862e819ad3",
+              "name": "categories",
+              "value": "={{ $('Edit Fields').item.json.categories }}",
+              "type": "array"
+            },
+            {
+              "id": "e4f85bab-534c-4577-9d18-e9b76756b1aa",
+              "name": "infobox",
+              "value": "={{ $json.infobox[0].data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        976,
+        240
+      ],
+      "id": "8a8c80cb-41c5-4165-ac7c-2d1276ab945f",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5d0621ee-97ed-4779-b3e7-7c61c6ce35ff",
+              "leftValue": "={{ $json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        48,
+        496
+      ],
+      "id": "f93a6e64-9a59-464c-82de-39ede854dd9f",
+      "name": "If",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "page_errors",
+          "mode": "list",
+          "cachedResultName": "page_errors"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "page_id": "={{ $('Edit Fields2').item.json.pageid }}",
+            "page_title": "={{ $('Edit Fields2').item.json.title }}",
+            "page_url": "={{ $('Edit Fields2').item.json.fullurl }}",
+            "error_code": "={{ $json.error.code }}",
+            "error_info": "={{ $json.error.info }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "page_id",
+              "displayName": "page_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "page_title",
+              "displayName": "page_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "page_url",
+              "displayName": "page_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_code",
+              "displayName": "error_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_info",
+              "displayName": "error_info",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -160,
+        384
+      ],
+      "id": "25e1bb30-ab63-4fc8-8fc9-b9c22675627f",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "BruP5oDsGu2TL8iJ",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simple clearing node - just return minimal data to continue the loop\nreturn [{\n  json: {\n    status: 'ready_for_next_batch',\n    timestamp: Date.now()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2560,
+        1072
+      ],
+      "id": "3c96e303-e3ba-4855-8357-a76b30440110",
+      "name": "Empty Memory (TBR)"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO pages (page_id, title, fullurl, categories, infobox_kv)\nVALUES (\n  {{ $json.metadata.pageid }},\n  $t$ {{ $json.metadata.page_title }} $t$,\n  $u$ {{ $json.metadata.url }} $u$,\n  $j$ {{ $('Code in JavaScript2').item.json.pg_categories_json }} $j$::jsonb,\n  $k$ {{ $('Code in JavaScript2').item.json.pg_infobox_kv_json }} $k$::jsonb\n)\nON CONFLICT (page_id) DO NOTHING;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3776,
+        544
+      ],
+      "id": "a850cc1f-efc3-4823-b8cc-c2df6bfc1063",
+      "name": "Save into Pages",
+      "credentials": {
+        "postgres": {
+          "id": "BruP5oDsGu2TL8iJ",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": "warhammer_vectors",
+        "embeddingBatchSize": 10,
+        "options": {
+          "columnNames": {
+            "values": {
+              "contentColumnName": "pagecontent"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        3424,
+        544
+      ],
+      "id": "1bb083da-a587-4333-9a4d-271377d4d948",
+      "name": "Insert Vec Embed",
+      "credentials": {
+        "postgres": {
+          "id": "BruP5oDsGu2TL8iJ",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: item.json.infobox = array from API\n// Output: item.json.infobox_kv = { key: plainTextValue, ... }\n\nfunction slugify(label) {\n  return String(label || \"\")\n    .toLowerCase()\n    .replace(/[\\s/]+/g, \"_\")\n    .replace(/[^a-z0-9_]/g, \"\")\n    .replace(/^_+|_+$/g, \"\");\n}\n\nfunction stripHtml(html) {\n  return String(html || \"\")\n    .replace(/<br\\s*\\/?>/gi, \"\\n\")\n    .replace(/<\\/p>\\s*<p>/gi, \"\\n\\n\")\n    .replace(/<[^>]+>/g, \"\")\n    .replace(/&nbsp;/g, \" \")\n    .replace(/\\s+/g, \" \")\n    .trim();\n}\n\nconst items = $input.all();\n\nfor (const item of items) {\n  const infobox = item.json.infobox;\n  const kv = {};\n\n  if (Array.isArray(infobox)) {\n    for (const block of infobox) {\n      if (!block || block.type !== \"data\" || !block.data) continue;\n\n      const label = block.data.label || block.data.source || block.data[\"item-name\"];\n      if (!label) continue;\n\n      const key = slugify(label);\n      const val = stripHtml(block.data.value);\n\n      // skip empty or image-like fields\n      if (!val || /^https?:\\/\\//i.test(val)) continue;\n\n      // merge duplicates as arrays\n      if (kv[key] === undefined) kv[key] = val;\n      else if (Array.isArray(kv[key])) kv[key].push(val);\n      else kv[key] = [kv[key], val];\n    }\n  }\n\n  item.json.infobox_kv = kv;\n  delete item.json.infobox; // optional cleanup\n}\n\nreturn items;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        240
+      ],
+      "id": "ce9074e2-c067-4c51-88a4-0d49a65b2bd1",
+      "name": "Strip & Clean"
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $json.query.pages?.[0] || {};\nlet infobox = null;\nconst raw = p.pageprops?.infoboxes;\nif (raw) {\n  try { infobox = JSON.parse(raw); } catch {}\n}\nreturn [{ infobox }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        240
+      ],
+      "id": "f2ad03a1-b129-437e-be0a-ac7205b1be27",
+      "name": "Extract Infobox"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  // Categories → [\"Imperial Ordo\", \"Imperium\", ...]\n  const rawCats =\n    item.json.categories ||\n    item.json.parse?.categories || // if nested under parse\n    [];\n  const cats = Array.isArray(rawCats)\n    ? rawCats\n        .map(c => c?.category)\n        .filter(Boolean)\n        .map(s => s.replace(/_/g, ' '))\n        .filter((v, i, a) => a.indexOf(v) === i) // dedupe\n    : [];\n\n  // Infobox KV: ensure values are plain strings (join arrays)\n  const kv = item.json.infobox_kv || {};\n  const kvClean = {};\n  for (const [k, v] of Object.entries(kv)) {\n    if (Array.isArray(v)) kvClean[k] = v.map(x => String(x)).join('; ');\n    else kvClean[k] = String(v ?? '');\n  }\n\n  // Stringify for Postgres ::jsonb\n  item.json.pg_categories_json   = JSON.stringify(cats);\n  item.json.pg_infobox_kv_json   = JSON.stringify(kvClean);\n}\nreturn $input.all();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2944,
+        240
+      ],
+      "id": "cb958d1e-9dac-48ff-8b1c-c040e4a6cff5",
+      "name": "Format Metadata"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM pages\nWHERE btrim(\n        title,\n        ' '                           -- normal space\n        || chr(9)   || chr(10) || chr(13) -- tab, lf, cr (just in case)\n        || chr(160)                  -- NBSP U+00A0\n        || chr(8239)                 -- narrow NBSP U+202F\n        || chr(65279)                -- BOM U+FEFF\n        || chr(8203) || chr(8204) || chr(8205) || chr(8288)  -- ZW*, WJ\n     ) = $1;\n",
+        "options": {
+          "queryReplacement": "={{ $json.parse.title }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -176,
+        240
+      ],
+      "id": "adc4933d-b202-4e49-ba4d-23ad75a6bd42",
+      "name": "Duplicacy Check",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "BruP5oDsGu2TL8iJ",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://warhammer40k.fandom.com/api.php?action=query&format=json&formatversion=2&prop=pageprops&redirects=1&pageids={{ $json.parse.pageid }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "origin",
+              "value": "*"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "WH40KIndexer/1.0 (contact: andrefooteds@gmail.com)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        608,
+        240
+      ],
+      "id": "506af367-fc8f-469b-827e-4579cba31c0f",
+      "name": "Get Infobox"
+    },
+    {
+      "parameters": {
+        "url": "=https://warhammer40k.fandom.com/api.php",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "origin",
+              "value": "*"
+            },
+            {
+              "name": "action",
+              "value": "parse"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "formatversion",
+              "value": "2"
+            },
+            {
+              "name": "redirects",
+              "value": "1"
+            },
+            {
+              "name": "prop",
+              "value": "text|categories"
+            },
+            {
+              "name": "pageid",
+              "value": "={{ $json.pageid }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "WH40KIndexer/1.0 (contact: andrefooteds@gmail.com)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -416,
+        240
+      ],
+      "id": "6e7f9430-5b1b-4875-b475-43a75c5cabdf",
+      "name": "Get Page",
+      "executeOnce": true,
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Insert Vec Embed",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Get Infobox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Format Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Get Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Chunk Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Insert Vec Embed",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunk Text": {
+      "main": [
+        [
+          {
+            "node": "Format Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Document": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Data": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Strip & Clean",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Empty Memory (TBR)": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save into Pages": {
+      "main": [
+        [
+          {
+            "node": "Empty Memory (TBR)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Vec Embed": {
+      "main": [
+        [
+          {
+            "node": "Save into Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Strip & Clean": {
+      "main": [
+        [
+          {
+            "node": "Extract Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Infobox": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Metadata": {
+      "main": [
+        [
+          {
+            "node": "Insert Vec Embed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duplicacy Check": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Infobox": {
+      "main": [
+        [
+          {
+            "node": "Extract Infobox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Page": {
+      "main": [
+        [
+          {
+            "node": "Duplicacy Check",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveExecutionProgress": false,
+    "saveManualExecutions": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "saveDataErrorExecution": "none"
+  },
+  "versionId": "e26f7407-12a0-42dd-b7c2-1e714a92e4f4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6d07bb17e05fc9e36e3fe68c2306c74c839f961d48dc3f3b65d5e325411651dd"
+  },
+  "id": "yr9eXTvastCV21Oj",
+  "tags": [
+    {
+      "updatedAt": "2025-11-17T12:22:25.746Z",
+      "createdAt": "2025-11-17T12:22:25.746Z",
+      "id": "We0d1N1qqF7gmySM",
+      "name": "complete"
+    }
+  ]
+}

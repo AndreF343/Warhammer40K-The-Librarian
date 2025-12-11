@@ -1,0 +1,102 @@
+version: "3.9"
+
+services:
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+  # qdrant:
+  #   image: qdrant/qdrant:latest
+  #   container_name: qdrant
+  #   restart: unless-stopped
+  #   environment:
+  #     QDRANT__SERVICE__GRPC_PORT: 6334
+  #     QDRANT__SERVICE__API_KEY: "WH40K"
+  #   volumes:
+  #   - qdrant_storage:/qdrant/storage
+  #   ports:
+  #   - "6333:6333" # REST
+  #   - "6334:6334" # gRPC
+
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    env_file:
+    - ./.env
+    environment:
+    - N8N_BASIC_AUTH_ACTIVE=true
+    - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+    - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+    - N8N_PORT=5678
+    - N8N_HOST=${N8N_HOST}
+    - WEBHOOK_URL=${WEBHOOK_URL}
+    - GENERIC_TIMEZONE=Asia/Bangkok
+    - QDRANT_URL=http://qdrant:6333
+    - QDRANT_COLLECTION=wh40k
+    - OPENAI_API_KEY=${OPENAI_API_KEY}
+    - LANGFUSE_HOST=http://langfuse:3000
+    - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+    - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+    - N8N_AI_FEATURES_ENABLED=true
+    - NODE_OPTIONS=--max-old-space-size=4096
+    - DB_POSTGRESDB_HOST=pg-n8n
+    volumes:
+    - n8n_data:/home/node/.n8n
+    - ./data:/workspace/data
+    ports:
+    - "5678:5678"
+    depends_on:
+    - pg-n8n
+      
+  pg-n8n:
+    image: pgvector/pgvector:pg18
+    restart: always
+    environment:
+      - POSTGRES_DB=warhammer
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - pg_n8n_data:/var/lib/postgresql 
+volumes:
+  pg_n8n_data:
+    # depends_on:
+    # - qdrant
+    # - langfuse
+
+
+  # langfuse:
+  #   image: langfuse/langfuse:latest
+  #   container_name: langfuse
+  #   restart: unless-stopped
+  #   environment:
+  #   - DATABASE_URL=postgresql://langfuse:langfuse@langfuse-db:5432/langfuse
+  #   - NEXTAUTH_SECRET=devsecret
+  #   - NEXTAUTH_URL=http://localhost:3000
+  #   - SALT=devsalt
+  #   - ENCRYPTION_KEY=0123456789abcdef0123456789abcdef
+  #   - USE_OPENAI=false
+  #   ports:
+  #   - "3000:3000"
+  #   depends_on:
+  #   - langfuse-db
+
+
+  # langfuse-db:
+  #   image: postgres:15
+  #   container_name: langfuse-db
+  #   restart: unless-stopped
+  #   environment:
+  #   POSTGRES_DB: langfuse
+  #   POSTGRES_USER: langfuse
+  #   POSTGRES_PASSWORD: langfuse
+  #   volumes:
+  #   - langfuse_pg:/var/lib/postgresql/data
+
+
+# volumes:
+  # qdrant_storage:
+  n8n_data:
+  # langfuse_pg:

@@ -1,0 +1,42 @@
+# OS / Editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.code-workspace
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Node / n8n
+node_modules/
+.n8n/
+n8n_data/
+
+# Docker / Compose overrides
+docker-compose.override.yml
+*.local.yml
+
+# Secrets & env files
+.env
+.env.*
+.envrc
+
+# Data / artifacts generated at runtime
+data/out/
+KnowledgeGraph/out/
+pg_n8n_data/
+.pgdata/
+
+# Logs
+*.log

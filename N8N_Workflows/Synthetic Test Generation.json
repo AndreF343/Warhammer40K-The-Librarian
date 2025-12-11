@@ -1,0 +1,1337 @@
+{
+  "name": "Synthetic Test Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app3PESPR4UG79u25",
+          "mode": "list",
+          "cachedResultName": "WH DeepEval System v1.0",
+          "cachedResultUrl": "https://airtable.com/app3PESPR4UG79u25"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblWbhcUfV2pub7LL",
+          "mode": "list",
+          "cachedResultName": "Metrics",
+          "cachedResultUrl": "https://airtable.com/app3PESPR4UG79u25/tblWbhcUfV2pub7LL"
+        },
+        "filterByFormula": "{Status}=\"Enabled\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        976
+      ],
+      "id": "300a13b4-8ef6-4121-98e0-afd211e12c01",
+      "name": "Fetch Metrics",
+      "retryOnFail": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "3ie9lGdlBqO9NzgW",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"test_cases\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"input\": {\n            \"type\": \"string\",\n            \"description\": \"The input question or prompt for the test case\"\n          },\n          \"expected_output\": {\n            \"type\": \"string\",\n            \"description\": \"The expected response or answer for the given input\"\n          },\n          \"context\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Array of relevant excerpts or context information from documents\"\n          },\n          \"metric_rationale\": {\n            \"type\": \"string\",\n            \"description\": \"Explanation of why specific metrics are recommended for this test case\"\n          },\n          \"metrics\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [{{ $('Merge').item.json.recommended_metrics }}]\n            },\n            \"description\": \"List of evaluation metrics recommended for this test case\"\n          },\n          \"metric_selection_category\": {\n            \"type\": \"string\",\n            \"description\": \"Category that determines the metric selection strategy\"\n          }\n        },\n        \"required\": [\n          \"input\",\n          \"expected_output\",\n          \"context\",\n          \"metric_rationale\",\n          \"metrics\",\n          \"metric_selection_category\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": [\"test_cases\"],\n  \"additionalProperties\": false\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3008,
+        768
+      ],
+      "id": "bdc90ec0-0c3c-4f3e-bb5a-c0248b0487aa",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app3PESPR4UG79u25",
+          "mode": "list",
+          "cachedResultName": "WH DeepEval System v1.0",
+          "cachedResultUrl": "https://airtable.com/app3PESPR4UG79u25"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblFj0KgsiFNdtxWW",
+          "mode": "list",
+          "cachedResultName": "Test Suite",
+          "cachedResultUrl": "https://airtable.com/appofDkzcFcKLNRqC/tblFj0KgsiFNdtxWW"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Test Input": "={{ $json.input }}",
+            "Expected Output": "={{ $json.expected_output }}",
+            "Context": "={{ JSON.stringify($json.context) }}",
+            "Metrics": "={{ $json.metrics }}",
+            "Eval Type": "={{ $json.metric_selection_category }}",
+            "Status": "Disabled"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Test Case ID",
+              "displayName": "Test Case ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Test Input",
+              "displayName": "Test Input",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Eval Type",
+              "displayName": "Eval Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Expected Output",
+              "displayName": "Expected Output",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Metrics",
+              "displayName": "Metrics",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Context",
+              "displayName": "Context",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Enabled",
+                  "value": "Enabled"
+                },
+                {
+                  "name": "Disabled",
+                  "value": "Disabled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Test Log",
+              "displayName": "Test Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        4048,
+        544
+      ],
+      "id": "ec990343-b9f9-4553-b725-8f8aca682cf9",
+      "name": "Create the Test Case",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "3ie9lGdlBqO9NzgW",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the metrics data from the \"Aggregate Metrics\" node\nconst metricsData = $(\"Fetch Metrics\").all(); // Get all items, not just metricsIDs\n\n// Create a lookup map for faster matching\nconst metricsLookup = {};\nmetricsData.forEach(metric => {\n  const evalId = metric.json[\"Eval ID\"];\n  metricsLookup[evalId] = metric.json;\n});\n\nconsole.log(\"Metrics lookup:\", metricsLookup);\n\n// Loop over input items and add matched metrics fields\nfor (const item of $input.all()) {\n  // Get the recommended metrics for this test case\n  const recommendedMetrics = item.json.metrics || [];\n  \n  // Match each recommended metric with the actual metric object\n  const matchedMetrics = recommendedMetrics.map(metricId => {\n    const matchedMetric = metricsLookup[metricId];\n    if (matchedMetric) {\n      return {\n        id: matchedMetric.id, // This is the Airtable record ID\n        name: matchedMetric[\"Metric Name\"],\n        threshold: matchedMetric[\"Threshold (0-1)\"],\n        model: matchedMetric.Model,\n        airtable_id: matchedMetric.id,\n        createdTime: matchedMetric.createdTime\n      };\n    } else {\n      // Handle case where recommended metric is not found\n      return {\n        id: metricId,\n        name: \"Unknown Metric\",\n        error: `Metric '${metricId}' not found in metrics data`\n      };\n    }\n  });\n  \n  // Replace the original metrics array with the matched Airtable IDs\n  item.json.metrics = matchedMetrics.map(m => m.airtable_id);\n  \n  // Add additional fields for reference\n  item.json.matched_metrics = matchedMetrics;\n  item.json.matched_metric_count = matchedMetrics.length;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3824,
+        544
+      ],
+      "id": "2a591a3d-393b-41c1-bf29-a48372863a04",
+      "name": "Swap in Metric IDs"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Document Summary\n\n{{ $('Generate Doc Summary').item.json.output.document_summary }}\n\nDocument Chunk:\n\n{{ $json.chunks }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=# Role\n\nYou are an expert at creating evaluation datasets for AI systems. I will provide you with a large segment of a document, and you need to generate high-quality test cases based on its content.\n\nYou need to put yourself in the shoes of a customer of an ecommerce store and craft the test cases from their perspective.\n\nFor each test case, generate:\n1. **input**: A question or statement that can be answered using the document\n2. **expected_output**: The ideal response based on the document content  \n3. **context**: The relevant excerpt(s) from the document that support the answer\n4. **metrics**: Array of suggested evaluation metrics for this specific question\n5. **metric_rationale**: Brief explanation of why these metrics are recommended\n6. **metric_selection_category**: Mention which question type this question covers from the list\n\n# Available metrics to choose from:\n{{ JSON.stringify($('Merge').item.json.metrics) }}\n\n# Question Types - Metric Selection Category Guidelines:\n- **Knowledge Available**: If the document contains the answer → faithfulness, answer_relevancy, contextual_recall, contextual_relevancy\n- **Knowledge Missing**: If document lacks info → skip contextual metrics, use answer_relevancy, faithfulness\n- **Factual Questions**: faithfulness, answer_relevancy, contextual_relevancy\n- **Opinion/Subjective**: bias\n- **Summary Requests**: summarization, faithfulness\n- **Complex Reasoning**: answer_relevancy, faithfulness\n- **Sensitive Topics**: bias, toxicity\n\n# Task\n\nGenerate {{ $('Set Vars').item.json.questionsPerChunk }} diverse test cases covering different question types and metric needs. Diverse range of inputs - some short, some long.\n\n# JSON Format with SAMPLE Output:\n{\n  \"test_cases\": [\n    {\n      \"input\": \"What is the main purpose of...\",\n      \"expected_output\": \"The main purpose is...\", \n      \"context\": [\"Relevant excerpt from document...\"],\n      \"metric_rationale\": \"A short sentence explaining the reason why you are selecting the following metric(s)\",\n      \"metrics\": [{{ $('Merge').item.json.recommended_metrics }}],\n      \"metric_selection_category\": \"Knowledge Available\"\n    }\n  ]\n}\n\nYou MUST output in JSON\nYou MUST output {{ $('Set Vars').item.json.questionsPerChunk }} - No more, no less"
+            }
+          ]
+        },
+        "batching": {
+          "batchSize": 1,
+          "delayBetweenBatches": 1000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        2928,
+        544
+      ],
+      "id": "2a5bbf26-e129-4e07-b8af-0b9bb173bb29",
+      "name": "Generate Questions"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        336,
+        368
+      ],
+      "id": "7de10e5c-d364-4041-aeea-3f01821b4923",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9ccf3654-4708-4e20-9ac0-e0a1f5054353",
+              "name": "chunkMaxSize",
+              "value": 40000,
+              "type": "number"
+            },
+            {
+              "id": "311ee747-77f7-4433-838a-4e68964d97a3",
+              "name": "questionsPerChunk",
+              "value": 3,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        384,
+        1040
+      ],
+      "id": "3d88dea7-f530-4e2f-9fe9-2a8a65eef793",
+      "name": "Set Vars"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2480,
+        544
+      ],
+      "id": "367e4543-6c92-4529-989d-e3c62ff926d0",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the first input item to use as base output\nconst baseItem = $input.all()[0];\n  \n// Create metrics array from all input items with just Id and Description\nbaseItem.json.metrics = [];\nbaseItem.json.recommended_metrics = [];\nbaseItem.json.metricsIDs = [];\n\nfor (const item of $input.all()) {\n  baseItem.json.metrics.push({\n    Id: item.json[\"Eval ID\"],\n    Description: item.json.Description\n  });\n  baseItem.json.recommended_metrics.push(\n    \"\\\"\" + item.json[\"Eval ID\"] + \"\\\"\"\n  );\n  baseItem.json.metricsIDs.push({\n    Id: item.json.id,\n    ID: item.json[\"Eval ID\"],\n  });\n}\nreturn [baseItem];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2208,
+        976
+      ],
+      "id": "bd21de7e-c809-4aed-87d7-20f28e4cc27c",
+      "name": "Aggregate Metrics"
+    },
+    {
+      "parameters": {
+        "content": "### Set Parameters",
+        "height": 240,
+        "width": 160,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        352,
+        960
+      ],
+      "id": "34c118de-e3b5-470f-9c5b-6c623501bb8e",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "chunks",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2704,
+        544
+      ],
+      "id": "58df5a27-a8d3-4ce4-b96c-cb4a2cd1e71d",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the first item as the base\nconst firstItem = $input.all()[0];\n\n// Initialize with the first item's test cases\nlet allTestCases = [...firstItem.json.output.test_cases];\n\n// Loop over remaining input items and collect their test_cases\nfor (let i = 1; i < $input.all().length; i++) {\n  const item = $input.all()[i];\n  if (item.json && item.json.output && item.json.output.test_cases) {\n    allTestCases = allTestCases.concat(item.json.output.test_cases);\n  }\n}\n\n// Update the first item with all combined test cases\nfirstItem.json.output.test_cases = allTestCases;\n\n// Return only the first item with all test cases combined\nreturn [firstItem];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3376,
+        544
+      ],
+      "id": "52c86fec-9174-48dc-817d-a346be124f93",
+      "name": "Merge All Test Cases"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.test_cases",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3600,
+        544
+      ],
+      "id": "52d2f340-3925-421d-bd1d-9ec87f76c697",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        992,
+        1040
+      ],
+      "id": "ad8e10e1-5e7b-406b-8c0a-ea8f42a39770",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recursive Markdown Chunker - Splits by Headers with Size Limits\nfunction chunkMarkdown(text, maxChunkSize = 20000) {\n  if (!text) return [];\n  \n  const lines = text.split('\\n');\n  const chunks = [];\n  let current = [];\n  let currentSize = 0;\n  let pendingHeader = null;\n  \n  for (let i = 0; i < lines.length; i++) {\n    const line = lines[i];\n    const lineSize = line.length + 1; // +1 for newline\n    const isHeader = line.match(/^#{1,6}\\s/);\n    \n    // If we hit a header, only split if current chunk is getting large (prioritize size over headers)\n    if (isHeader && currentSize > maxChunkSize * 0.8) { // Only split at headers when 80% full\n      // Save current chunk\n      if (current.length > 0) {\n        const chunk = current.join('\\n').trim();\n        if (chunk.length > maxChunkSize) {\n          chunks.push(...splitLargeChunk(chunk, maxChunkSize));\n        } else {\n          chunks.push(chunk);\n        }\n      }\n      \n      // Start new chunk with this header\n      current = [line];\n      currentSize = lineSize;\n      continue;\n    }\n    \n    // If adding this line would exceed size limit, find a good break point\n    if (currentSize + lineSize > maxChunkSize && current.length > 1) {\n      // Look for the best break point in the current chunk\n      const chunkText = current.join('\\n');\n      let breakPoint = findBestBreakPoint(chunkText, maxChunkSize);\n      \n      // Split at the break point\n      const beforeBreak = chunkText.substring(0, breakPoint).trim();\n      const afterBreak = chunkText.substring(breakPoint).trim();\n      \n      if (beforeBreak) {\n        chunks.push(beforeBreak);\n      }\n      \n      // Start new chunk with remaining content and current line\n      const remainingLines = afterBreak ? afterBreak.split('\\n') : [];\n      const lastHeader = current.find(l => l.match(/^#{1,6}\\s/));\n      \n      current = lastHeader && !afterBreak.includes(lastHeader) ? [lastHeader, ...remainingLines, line] : [...remainingLines, line];\n      currentSize = current.join('\\n').length;\n    } else {\n      current.push(line);\n      currentSize += lineSize;\n    }\n  }\n  \n  // Handle the last chunk\n  if (current.length > 0) {\n    const chunk = current.join('\\n').trim();\n    if (chunk.length > 0) {\n      if (chunk.length > maxChunkSize) {\n        chunks.push(...splitLargeChunk(chunk, maxChunkSize));\n      } else {\n        chunks.push(chunk);\n      }\n    }\n  }\n  \n  return chunks;\n}\n\n// Helper function to find the best break point near the max size\nfunction findBestBreakPoint(text, maxSize) {\n  if (text.length <= maxSize) return text.length;\n  \n  // Start looking from maxSize and work backwards to find good break points\n  let breakPoint = maxSize;\n  \n  // Look for full stop + space within last 500 chars\n  for (let i = maxSize; i >= Math.max(0, maxSize - 500); i--) {\n    if (text[i] === '.' && text[i + 1] === ' ') {\n      return i + 2; // Include the full stop and space\n    }\n  }\n  \n  // If no full stop, look for paragraph break (\\n\\n)\n  for (let i = maxSize; i >= Math.max(0, maxSize - 500); i--) {\n    if (text.substring(i, i + 2) === '\\n\\n') {\n      return i + 2;\n    }\n  }\n  \n  // If no paragraph break, look for any newline\n  for (let i = maxSize; i >= Math.max(0, maxSize - 200); i--) {\n    if (text[i] === '\\n') {\n      return i + 1;\n    }\n  }\n  \n  // Last resort: find a space\n  for (let i = maxSize; i >= Math.max(0, maxSize - 100); i--) {\n    if (text[i] === ' ') {\n      return i + 1;\n    }\n  }\n  \n  // If all else fails, break at maxSize\n  return maxSize;\n}\n\n// Recursive function to split large chunks by character count\nfunction splitLargeChunk(text, maxSize) {\n  if (text.length <= maxSize) return [text];\n  \n  const chunks = [];\n  let start = 0;\n  \n  while (start < text.length) {\n    let end = start + maxSize;\n    \n    // If we're not at the end, try to find a good break point\n    if (end < text.length) {\n      // Look for paragraph breaks first\n      let breakPoint = text.lastIndexOf('\\n\\n', end);\n      if (breakPoint > start) {\n        end = breakPoint + 2;\n      } else {\n        // Look for sentence breaks\n        breakPoint = text.lastIndexOf('. ', end);\n        if (breakPoint > start) {\n          end = breakPoint + 2;\n        } else {\n          // Look for any whitespace\n          breakPoint = text.lastIndexOf(' ', end);\n          if (breakPoint > start) {\n            end = breakPoint + 1;\n          }\n        }\n      }\n    }\n    \n    chunks.push(text.slice(start, end).trim());\n    start = end;\n  }\n  \n  return chunks;\n}\n\n// Loop over input items and replace data with chunks\nfor (const item of $input.all()) {\n  const inputData = $input.first().json.output.document_summary;\n  const chunks = chunkMarkdown(inputData, $('Set Vars').first().json.chunkMaxSize);\n  \n  // Create new object without the data field\n  // @ts-ignore\n  item.json = {\n    chunks: chunks\n  };\n}\n\nreturn $input.all();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2256,
+        544
+      ],
+      "id": "f073a562-6ed5-45ce-be52-d36d2ebe9736",
+      "name": "Macro Chunker"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\"document_summary\":\"<ADD>\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1952,
+        816
+      ],
+      "id": "6f9d33f0-5b6a-46ff-9f96-5763c7202c6b",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# File Name\n\n{{ $json.title }}\n\n##################\n\n# File Contents\n{{ \n$json.pagecontent.split(/\\s+/).length > 3000 \n    ? $json.pagecontent.split(/\\s+/).slice(0, 3000).join(' ') + '...' \n    : $json.pagecontent \n}}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Based on the provided file name and file contents, extract out a 1 paragraph description of what the document is about.\n\nOnly output JSON in the following format\n\n{\n\"document_summary\":\"<ADD>\",\n}\n\nIf you are unsure of any of these, just output N/A in the field."
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        1888,
+        544
+      ],
+      "id": "ec036e71-ef40-4ada-b40f-a7fbafb153dc",
+      "name": "Generate Doc Summary",
+      "retryOnFail": true,
+      "maxTries": 5
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app3PESPR4UG79u25",
+          "mode": "list",
+          "cachedResultName": "WH DeepEval System v1.0",
+          "cachedResultUrl": "https://airtable.com/app3PESPR4UG79u25"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl79m0xwWfDdYQyF",
+          "mode": "list",
+          "cachedResultName": "Test Runs & Reports",
+          "cachedResultUrl": "https://airtable.com/app3PESPR4UG79u25/tbl79m0xwWfDdYQyF"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Test Run ID",
+              "displayName": "Test Run ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "In Progress",
+                  "value": "In Progress"
+                },
+                {
+                  "name": "Complete",
+                  "value": "Complete"
+                },
+                {
+                  "name": "Error",
+                  "value": "Error"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Success Percentage",
+              "displayName": "Success Percentage",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Evaluation Cost (USD)",
+              "displayName": "Evaluation Cost (USD)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Test Log",
+              "displayName": "Test Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Total Successes",
+              "displayName": "Total Successes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Total Executions",
+              "displayName": "Total Executions",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1712,
+        128
+      ],
+      "id": "55a98060-e991-44c6-88b5-10a452b7596d",
+      "name": "Create the Test Run",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "3ie9lGdlBqO9NzgW",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app3PESPR4UG79u25",
+          "mode": "list",
+          "cachedResultName": "WH DeepEval System v1.0",
+          "cachedResultUrl": "https://airtable.com/app3PESPR4UG79u25"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblFj0KgsiFNdtxWW",
+          "mode": "list",
+          "cachedResultName": "Test Suite",
+          "cachedResultUrl": "https://airtable.com/app3PESPR4UG79u25/tblFj0KgsiFNdtxWW"
+        },
+        "filterByFormula": "{Status}=\"Enabled\"",
+        "returnAll": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1936,
+        128
+      ],
+      "id": "c5cfbfe8-f3ba-4198-8067-85c24e5717b1",
+      "name": "Fetch Test Cases to Run",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "3ie9lGdlBqO9NzgW",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2448,
+        32
+      ],
+      "id": "3eca525d-bff0-4940-8cab-0eb1b8e37aea",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app3PESPR4UG79u25",
+          "mode": "list",
+          "cachedResultName": "WH DeepEval System v1.0",
+          "cachedResultUrl": "https://airtable.com/app3PESPR4UG79u25"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl79m0xwWfDdYQyF",
+          "mode": "list",
+          "cachedResultName": "Test Runs & Reports",
+          "cachedResultUrl": "https://airtable.com/appofDkzcFcKLNRqC/tbl79m0xwWfDdYQyF"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Create the Test Run').item.json.id }}",
+            "Status": "Complete"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "Test Run ID",
+              "displayName": "Test Run ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "In Progress",
+                  "value": "In Progress"
+                },
+                {
+                  "name": "Complete",
+                  "value": "Complete"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Test Log",
+              "displayName": "Test Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2672,
+        64
+      ],
+      "id": "ca3870ec-15a9-4eca-b980-7da317ed5eb4",
+      "name": "Update the Test Run",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "3ie9lGdlBqO9NzgW",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "j9Wb9Gzg3sTx5CfY",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/j9Wb9Gzg3sTx5CfY",
+          "cachedResultName": "WH40K_HYBRID_PREFETCH_EVAL"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Metrics": "={{ $('Fetch Test Cases to Run').item.json.Metrics }}",
+            "Test Case Input": "={{ $('Fetch Test Cases to Run').item.json[\"Test Input\"] }}",
+            "Expected Tools Called": "={{ $('Fetch Test Cases to Run').item.json[\"Expected Tools Called\"] ? $('Fetch Test Cases to Run').item.json[\"Expected Tools Called\"] : \"\" }}",
+            "Expected Output": "={{ $('Fetch Test Cases to Run').item.json[\"Expected Output\"] ? $('Fetch Test Cases to Run').item.json[\"Expected Output\"] : \"\" }}",
+            "Test Run ID": "={{ $('Create the Test Run').item.json.id }}",
+            "Test Case ID": "={{ $json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Test Case Input",
+              "displayName": "Test Case Input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Expected Output",
+              "displayName": "Expected Output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Expected Tools Called",
+              "displayName": "Expected Tools Called",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Metrics",
+              "displayName": "Metrics",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            },
+            {
+              "id": "Test Run ID",
+              "displayName": "Test Run ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Test Case ID",
+              "displayName": "Test Case ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2160,
+        128
+      ],
+      "id": "25ae0c03-0d28-425c-8ef4-9626b6075dee",
+      "name": "Execute Tests",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app3PESPR4UG79u25",
+          "mode": "list",
+          "cachedResultName": "WH DeepEval System v1.0",
+          "cachedResultUrl": "https://airtable.com/app3PESPR4UG79u25"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl79m0xwWfDdYQyF",
+          "mode": "list",
+          "cachedResultName": "Test Runs & Reports",
+          "cachedResultUrl": "https://airtable.com/appofDkzcFcKLNRqC/tbl79m0xwWfDdYQyF"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Create the Test Run').item.json.id }}",
+            "Status": "Error"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "Test Run ID",
+              "displayName": "Test Run ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "In Progress",
+                  "value": "In Progress"
+                },
+                {
+                  "name": "Complete",
+                  "value": "Complete"
+                },
+                {
+                  "name": "Error",
+                  "value": "Error"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Success Percentage",
+              "displayName": "Success Percentage",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Evaluation Cost (USD)",
+              "displayName": "Evaluation Cost (USD)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Test Log",
+              "displayName": "Test Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Total Successes",
+              "displayName": "Total Successes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Total Executions",
+              "displayName": "Total Executions",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2896,
+        192
+      ],
+      "id": "9d22726c-92c0-4118-9206-a1f628312e5a",
+      "name": "Mark as Error",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "3ie9lGdlBqO9NzgW",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM pages_kg_pc\nORDER BY random()\nLIMIT 30;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        608,
+        1040
+      ],
+      "id": "39b2dfc0-cc84-40d5-84f6-e83e661699e7",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "BruP5oDsGu2TL8iJ",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2656,
+        800
+      ],
+      "id": "4076f9e5-55bb-47bb-aa9b-986186264002",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "xgUI7Sf2qz1nGuDq",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate Questions",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Swap in Metric IDs": {
+      "main": [
+        [
+          {
+            "node": "Create the Test Case",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Questions": {
+      "main": [
+        [
+          {
+            "node": "Merge All Test Cases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Metrics": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Create the Test Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Vars": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Metrics": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Generate Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge All Test Cases": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Swap in Metric IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Fetch Metrics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Doc Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Macro Chunker": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create the Test Case": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate Doc Summary",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Doc Summary": {
+      "main": [
+        [
+          {
+            "node": "Macro Chunker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create the Test Run": {
+      "main": [
+        [
+          {
+            "node": "Fetch Test Cases to Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Test Cases to Run": {
+      "main": [
+        [
+          {
+            "node": "Execute Tests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Update the Test Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Tests": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark as Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Questions",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate Doc Summary",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "164e7d97-a8a1-4507-accc-30b848f0c358",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6d07bb17e05fc9e36e3fe68c2306c74c839f961d48dc3f3b65d5e325411651dd"
+  },
+  "id": "fXPFdX3inZVrS7lT",
+  "tags": [
+    {
+      "updatedAt": "2025-11-17T12:22:25.746Z",
+      "createdAt": "2025-11-17T12:22:25.746Z",
+      "id": "We0d1N1qqF7gmySM",
+      "name": "complete"
+    }
+  ]
+}
