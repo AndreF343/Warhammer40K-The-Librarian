@@ -1,6 +1,6 @@
 # Warhammer 40K Automation Stack
 
-<img width="2816" height="1536" alt="Gemini_Generated_Image_f20a91f20a91f20a" src="https://github.com/user-attachments/assets/839e6561-d1f2-4b86-9cc8-5492654f900f" />
+<img width="1408" height="676" alt="Gemini_Generated_Image_18zwqm18zwqm18zw" src="https://github.com/user-attachments/assets/2831da8e-0573-4387-8f71-87b38910d73d" />
 
 Automation suite that scrapes Warhammer 40,000 wiki data, stores it in Postgres/pgvector, evaluates LLM behaviors with synthetic tests, and serves a tool-using chat agent — all orchestrated with n8n and Docker Compose.
 
